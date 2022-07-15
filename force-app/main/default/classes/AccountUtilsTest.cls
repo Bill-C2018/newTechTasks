@@ -1,24 +1,11 @@
 @isTest
 public with sharing class AccountUtilsTest {
 
-    @TestSetup
-    static void makeData(){
-        
-    }
-
-    public static List<String> buildNameList(Integer count) {
-        List<String> names = new List<String>();
-        for (Integer x = 0; x < count; x++) {
-            names.Add('Test_Account_' + count);
-        }
-        return names;
-    }
-
     @isTest
     static void testcreateAccs(){
         Integer number_to_add = 2;
         AccountUtils au = new AccountUtils();
-        List<String> names = buildNameList(2);
+        List<String> names = testDataFactory.buildNameList(2);
         List<Id> ids = au.createAccs(names);
         system.debug(ids);
         system.assertEquals(number_to_add, ids.size());
