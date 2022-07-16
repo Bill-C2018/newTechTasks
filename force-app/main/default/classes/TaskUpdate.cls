@@ -8,7 +8,7 @@ public with sharing class TaskUpdate {
         T.Description = title;
         T.Subject = title;
         T.WhatId = Id;
-//        T.WhoId = owner;
+        T.OwnerId = owner;
         T.Priority = Priority;
         T.Type = 'Call';
         T.ActivityDate = dueDate;
