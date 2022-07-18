@@ -31,13 +31,15 @@ public with sharing class testDataFactory {
 */
     public static List<Account> addAnnualRevenue(List<Account> a) {
    
+        List<Account> aNew = new List<Account>();
         Integer count = 0;
         for (Account a1 : a) {
-            Integer randomNumber = Integer.valueof((Math.random() * 10));
-            a1.AnnualRevenue = randomNumber + 100000000;
+            Integer randomNumber = Integer.valueof((Math.random() * 20));
+            a1.AnnualRevenue = randomNumber/2 * 100000000;
+            aNew.add(a1);
         }
 
-        return a;
+        return aNew;
         
     }
 

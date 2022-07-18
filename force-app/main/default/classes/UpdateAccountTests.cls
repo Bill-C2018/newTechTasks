@@ -20,6 +20,9 @@ public with sharing class UpdateAccountTests {
         ua.updatePriority();
         List<Account> howMany = [SELECT Id FROM Account WHERE Priority__c = 'Medium'];
         system.assertEquals(NumberOfMediums, howMany.size());
+        howMany.clear();
+        howMany = [SELECT Id FROM Account WHERE Priority__c != null];
+        system.assertNotEquals(0, howMany.size());
                            
         
     }
