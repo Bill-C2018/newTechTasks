@@ -2,6 +2,15 @@
 public with sharing class testDataFactory {
 
 
+    public static List<Account> createAccountsWithSla(Integer count, String sla) {
+        List<Account> accs = new List<Account>();
+        for (Integer x = 0; x < count; x++) {
+            String name = sla + '-' + x;
+            Account a = new Account(Name = name, SLA__c = sla);
+            accs.add(a);
+        }
+        return accs;
+    }
     public static Account createAccountRecord(String accountName) {
 
         Account a = new Account(Name = accountName);

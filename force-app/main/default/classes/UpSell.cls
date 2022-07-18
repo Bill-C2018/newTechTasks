@@ -6,7 +6,7 @@ public with sharing class UpSell {
      Opportunity createOpportunity(String Name, String upsellTo) {
         Opportunity o = new Opportunity();
         String title =  Name + ' Upsell - ' + upsellTo;
-        o.Description = title;
+        o.Name = title;
         Date t = system.today();
         o.CloseDate = t.addMonths(1);
         o.StageName = 'Prospecting';
