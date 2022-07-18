@@ -2,18 +2,17 @@ public with sharing class UpdateAccount {
     public UpdateAccount() { }
 
 /*
-//  since Priority is not part of the standard account object, you must first define 
-//  a picklist field with Low, Medium and High and name the field Priority
+//  there IS an existing field CustomerPriority__c so no need for the priority__c I created
 */
     public void updatePriority() {
         for (List<Account> a : [SELECT AnnualRevenue FROM Account WHERE AnnualRevenue != null]) {
             for (Account a1: a) {
-                a1.Priority__c = 'Medium';
+                a1.CustomerPriority__c = 'Medium';
                 if (a1.AnnualRevenue > 800000000) {
-                    a1.Priority__c = 'High';
+                    a1.CustomerPriority__c = 'High';
                 }
                 else if (a1.AnnualRevenue < 200000000) {
-                    a1.Priority__c = 'Low';
+                    a1.CustomerPriority__c = 'Low';
                 }
 
             }
