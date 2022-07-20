@@ -7,14 +7,12 @@ trigger TT2NewAccountTrigger on Account (before insert, after insert, before del
         } 
         else {
             system.debug('trigger new ' + Trigger.new);
-            th.handleAfterInsert(Trigger.new);
+            th.handleAfterInsert(Trigger.newMap);
         }
     }
     else if(Trigger.isDelete) {
         th.HandleAccountDelete(Trigger.old);
     }
    
-    else if(Trigger.isUpdate) {
 
-    }
 }

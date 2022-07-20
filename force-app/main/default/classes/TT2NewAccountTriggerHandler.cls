@@ -1,10 +1,10 @@
 public with sharing class TT2NewAccountTriggerHandler {
     public TT2NewAccountTriggerHandler() {  }
 
-    public Campaign addCampaign(Account a) {
-        Campaign c = new Campaign(Name = a.Name);
+    private Campaign genGenericCampaign() {
+        Campaign c = new Campaign(Name = 'Webinar');
         c.Type = 'Webinar';
-        c.BudgetedCost = 0.01 * a.AnnualRevenue;
+        c.BudgetedCost = 0.01;
         c.StartDate = system.today() + 14;
         c.EndDate = c.StartDate;
         return c;
@@ -14,46 +14,39 @@ public with sharing class TT2NewAccountTriggerHandler {
         Opportunity o = new Opportunity(Name = a.Name);
         o.AccountId = a.Id;
         o.StageName = 'Prospecting';
+        o.CloseDate = system.today() + 14;
         return o;
     }
 
-    public Map<Id,Account> createAccountMap(List<Account> acc) {
-        Map<Id,Account> m = new Map<Id,Account>();
-        for (Account a: acc) {
-            m.put(a.id,a);
-        }
-        return m;
-    }
 
-    public void handleAfterInsert(List<Account> accs) {
-        List<Campaign> c = new List<Campaign>();
-        List<Opportunity> ol = new List<Opportunity>();
-        Map<Id,Account> m = createAccountMap(accs);
-        Map<String, Id> mc = new Map<String,Id>();
-        Map<Id,Opportunity> mo = new Map<Id,Opportunity>();
 
-        for(Account a: accs) {
-            system.debug('trigger loop ' + a);
-            Opportunity opp = addOpportunity(a);            
-            mo.put(a.Id, opp);
-            Campaign camp = addCampaign(a);
-            c.add(camp);
-            mc.put(camp.Name,a.Id);
+    public void handleAfterInsert( Map<Id,Account> newAccs)  {
+
+        system.debug('After insert : ' + newAccs);
+        List<Campaign> campaigns = new List<Campaign>();
+        Map<Id,Opportunity> opportunities = new Map<Id,Opportunity>();
+
+        for(ID id: newAccs.keySet()) {
+            campaigns.add(genGenericCampaign());
+            opportunities.put(id,addOpportunity(newAccs.get(id)));
         }
 
-        insert c;
-        for (Campaign cc: c) {
-            Id AcctId = mc.get(cc.Name);
-            Opportunity o = mo.get(AcctId);
-            o.CampaignId = cc.Id;
-            o.CloseDate = cc.EndDate;
-            ol.add(o);
+        insert campaigns;
 
+        Integer index = 0;
+        List<Opportunity> newOpps = new List<Opportunity>();
+        for(ID id: newAccs.keySet()) {
+            Opportunity o = opportunities.get(id);
+            o.CampaignId = campaigns.get(index).Id;
+            campaigns.get(index).BudgetedCost = newAccs.get(id).AnnualRevenue * .01;
+            campaigns.get(index).Name = 'Webinar for ' + newAccs.get(id).Name;
+            newOpps.add(o);
+            index++;
         }
 
-        insert ol;
-
-
+        update campaigns;
+        insert newOpps;
+       
     }
 
     public void HandleNewAccountInsert(List<Account> accs) {
@@ -64,17 +57,24 @@ public with sharing class TT2NewAccountTriggerHandler {
             } 
 
         }
-
-
-
-
-
-
-
-
     }
 
     public void HandleAccountDelete(List<Account> accs) {
+
+        system.debug('Handle delete ');
+        List<Opportunity> openOpps = [SELECT AccountId FROM Opportunity WHERE (NOT StageName LIKE 'CLOSED%')];
+        system.debug('Opps found ' + openOpps);
+        Set<Id> oSet = new Set<Id>();
+        for(Opportunity o: openOpps) {
+            oSet.add(o.AccountId);
+        }
+        system.debug('opps ids ' + oSet);
+        for(Account a: accs) {
+            system.debug('Checking ' + a.Id);
+            if(oSet.contains(a.Id)) {
+                a.addError('This Account has Open Oportunities');
+            }
+        }
         
     }
 }
