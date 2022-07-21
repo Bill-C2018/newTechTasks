@@ -6,7 +6,6 @@ trigger TT2NewAccountTrigger on Account (before insert, after insert, before del
             th.HandleNewAccountInsert(Trigger.new);
         } 
         else {
-            system.debug('trigger new ' + Trigger.new);
             th.handleAfterInsert(Trigger.newMap);
         }
     }
