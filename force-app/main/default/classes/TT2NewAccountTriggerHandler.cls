@@ -62,7 +62,11 @@ public with sharing class TT2NewAccountTriggerHandler {
     public void HandleAccountDelete(List<Account> accs) {
 
         system.debug('Handle delete ');
-        List<Opportunity> openOpps = [SELECT AccountId FROM Opportunity WHERE (NOT StageName LIKE 'CLOSED%')];
+        Set<Id> accId = new Set<Id>();
+        for(Account a: accs) {
+            accId.add(a.Id);
+        }
+        List<Opportunity> openOpps = [SELECT AccountId FROM Opportunity WHERE (AccountId IN :accId) AND (NOT StageName LIKE 'CLOSED%')];
         system.debug('Opps found ' + openOpps);
         Set<Id> oSet = new Set<Id>();
         for(Opportunity o: openOpps) {
