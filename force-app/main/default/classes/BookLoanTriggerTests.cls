@@ -2,11 +2,6 @@
 public with sharing class BookLoanTriggerTests {
 
 
-    //there is an edge case where if several people take out the same book its possible that the available
-    //number of books could drop below zero befor the book table is actually updated so I changed
-    //the simulatecheckout to only support single reader and book even though most of the rest 
-    //of the code is batch safe
-
     static BookLoanTriggerTestDataFactory testData = new BookLoanTriggerTestDataFactory();
 
     public BookLoanTriggerTests() { }
@@ -45,6 +40,7 @@ public with sharing class BookLoanTriggerTests {
         system.debug('Initial set ' + books + '++' + readers);
         BookLoan__c bl = simulateCheckoutScreen(readers.get('Aws'),books.get('Aws'));
 
+        test.startTest();
         //run as a standard user
         User u = createRunAsUser();
         System.runAs(u) {
@@ -57,16 +53,14 @@ public with sharing class BookLoanTriggerTests {
 
         //validate out count has gone from 0 to 1
         List<Book__c> btest = [SELECT Books_Out__c FROM Book__c WHERE Subject__c = 'AWS'];
-        system.debug('Btest' + btest);
         system.assertEquals(1, btest.size());
         system.assertEquals(1, btest.get(0).Books_Out__c);
 
         //validate a task was created
         Contact c = [SELECT LastName FROM Contact WHERE LastName = :readers.get('Aws').Full_Name__c LIMIT 1];
-        system.debug('contacts ' + c);
         List<Task> t = [SELECT WhoId FROM TASK WHERE WhoId = :c.Id];
-        system.debug('Tasks ' + t);
         system.assertEquals(1,t.size());
+        test.stopTest();
 
 
     }
@@ -78,6 +72,7 @@ public with sharing class BookLoanTriggerTests {
 
         BookLoan__c bl = simulateCheckoutScreen(readers.get('Linux'),books.get('Linux'));
 
+        test.startTest();
         //run as a standard user
         User u = createRunAsUser();
         System.runAs(u) {
@@ -88,6 +83,7 @@ public with sharing class BookLoanTriggerTests {
                 system.assert(err.getMessage().contains('Not Rentable - no books available'));
             }
         }
+        test.stopTest();
 
 
   
@@ -100,6 +96,7 @@ public with sharing class BookLoanTriggerTests {
 
         BookLoan__c bl = simulateCheckoutScreen(readers.get('Linux'),books.get('Aws'));
 
+        test.startTest();
         //run as a standard user
         User u = createRunAsUser();
         System.runAs(u) {
@@ -109,6 +106,7 @@ public with sharing class BookLoanTriggerTests {
                 system.assert(err.getMessage().contains('Not Rentable - reader is not qualified'));
             }
         }
+        test.stopTest();
 
   
 
@@ -119,18 +117,21 @@ public with sharing class BookLoanTriggerTests {
 
         Map<String,Book__c> books = testData.getBookMap();
         Map<String,Reader__c> readers = testData.getReaderMap();
-        BookLoan__c bl = simulateCheckoutScreen(readers.get('Aws'),books.get('Aws'));
+        BookLoan__c bl = simulateCheckoutScreen(readers.get('Aws'),books.get('Aws')); 
+        
+        test.startTest();
         User u = createRunAsUser();
         System.runAs(u) {
             Database.SaveResult srList = Database.insert(bl, false);
             system.assertEquals(true, srList.isSuccess());
             }
         
+        test.stopTest();
+
         List<BookLoan__c> returns = [SELECT Active__c, Book__c, Date_returned__c FROM BookLoan__c WHERE Book__c = :books.get('Aws').Id AND Reader__c = :readers.get('Aws').Id]; 
 
         List<Database.SaveResult> srListupdate = Database.update(returns, false);
         List<Book__c> btest = [SELECT Books_Out__c FROM Book__c WHERE Subject__c = 'AWS'];
-        system.debug('Btest' + btest);
         system.assertEquals(1, btest.size());
         system.assertEquals(0, btest.get(0).Books_Out__c);
 

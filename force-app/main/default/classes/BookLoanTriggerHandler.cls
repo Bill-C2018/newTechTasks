@@ -4,7 +4,6 @@ public with sharing class BookLoanTriggerHandler {
 
 
     private void doUpdateBoosk(List<Id> bookstoupdate) {
-//        List<Book__c> books = [SELECT Number_Out__c FROM Books__c WHERE Id IN :bookstoupdate];
         List<Book__c> b = new List<Book__c>();
         For(Book__c books: [SELECT Books_Out__c FROM Book__c WHERE Id IN :bookstoupdate]) {
             books.Books_Out__c = books.Books_Out__c - 1;
@@ -76,7 +75,12 @@ public with sharing class BookLoanTriggerHandler {
         }
         return foundBook;
     }
-
+    
+    //there is an edge case here that will fail .. if a batch of records hits it is 
+    //possible for several people to get the same book which could put the count below 
+    //zero before the record is updated. One solution would be to keep track of each 
+    //books out count in a map and use that to check the out of book case and then use those 
+    
     public void handleBeforeInsert(List<BookLoan__c> b) {
         system.debug('Before Insert ' + b);
 
@@ -94,9 +98,7 @@ public with sharing class BookLoanTriggerHandler {
             bcheck.Active__c = true;
             Book__c  bcurrent = getBookFromId(bk,bcheck.Book__c);
             Reader__c rcurrent = getReaderFromId(r,bcheck.Reader__c);
-            system.debug('Bookloan ' + bcheck);
-            system.debug('book Item ' + bcurrent);
-            system.debug('reader Item ' + rcurrent);
+
             if(bcurrent == null || rcurrent == null) {
                 system.debug('failed on nul book or reader');
                 bcheck.addError('Not Rentable - can not find book or reader');
@@ -122,10 +124,8 @@ public with sharing class BookLoanTriggerHandler {
 
     public void handleAfterInsert(Map<Id,BookLoan__c> b) {
         system.debug('After Insert ' + b);
-        //two tasks here .. create the new task and update the number out
+        //two item here .. create the new task and update the number out
         //don't use a set as there may be multiples of the same book 
-        //which can cause a problem in a batch scenario
-        //hmm but even handling it before insert would not solve the problem 
         List<Id> booksNeedingUpdate = new List<Id>();
         List<Id> readersNeedingEmails = new List<Id>();
         for(ID id: b.keySet()) {
@@ -139,10 +139,8 @@ public with sharing class BookLoanTriggerHandler {
             ubook.Books_Out__c = ubook.Books_Out__c + 1;
         } 
 
-        system.debug('books to update ' + updateBooks);
-        update updateBooks;
 
-        system.debug('readers needing mail ' + emailToReader);
+        update updateBooks;
         createEmailTask(emailToReader);
 
     }
