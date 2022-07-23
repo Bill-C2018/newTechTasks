@@ -50,6 +50,7 @@ public with sharing class BookLoanTriggerTests {
         
 
         List<BookLoan__c> current = [SELECT Book__c, Reader__c FROM BookLoan__c];
+        system.assertEquals(1, current.size());
 
         //validate out count has gone from 0 to 1
         List<Book__c> btest = [SELECT Books_Out__c FROM Book__c WHERE Subject__c = 'AWS'];
@@ -118,7 +119,7 @@ public with sharing class BookLoanTriggerTests {
         Map<String,Book__c> books = testData.getBookMap();
         Map<String,Reader__c> readers = testData.getReaderMap();
         BookLoan__c bl = simulateCheckoutScreen(readers.get('Aws'),books.get('Aws')); 
-        
+
         test.startTest();
         User u = createRunAsUser();
         System.runAs(u) {
