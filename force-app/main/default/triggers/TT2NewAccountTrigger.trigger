@@ -12,6 +12,6 @@ trigger TT2NewAccountTrigger on Account (before insert, after insert, before del
     else if(Trigger.isDelete) {
         th.HandleAccountDelete(Trigger.old);
     }
-   
+  
 
 }
