@@ -10,7 +10,7 @@ public with sharing class TT2NewAccountTriggerHandler {
         return c;
     }
 
-    public Opportunity addOpportunity(Account a) {
+    private Opportunity addOpportunity(Account a) {
         Opportunity o = new Opportunity(Name = a.Name);
         o.AccountId = a.Id;
         o.StageName = 'Prospecting';
@@ -21,7 +21,6 @@ public with sharing class TT2NewAccountTriggerHandler {
 
 
     public void handleAfterInsert( Map<Id,Account> newAccs)  {
-
         system.debug('After insert : ' + newAccs);
         List<Campaign> campaigns = new List<Campaign>();
         Map<Id,Opportunity> opportunities = new Map<Id,Opportunity>();
@@ -50,6 +49,7 @@ public with sharing class TT2NewAccountTriggerHandler {
     }
 
     public void HandleNewAccountInsert(List<Account> accs) {
+        system.debug('Before insert ' + accs);
         for(Account a: accs) {
             //first prevent poor companies from participating
             if (a.AnnualRevenue == 0 || a.AnnualRevenue == null) {
@@ -67,18 +67,16 @@ public with sharing class TT2NewAccountTriggerHandler {
             accId.add(a.Id);
         }
         List<Opportunity> openOpps = [SELECT AccountId FROM Opportunity WHERE (AccountId IN :accId) AND (NOT StageName LIKE 'CLOSED%')];
-        system.debug('Opps found ' + openOpps);
         Set<Id> oSet = new Set<Id>();
         for(Opportunity o: openOpps) {
             oSet.add(o.AccountId);
         }
-        system.debug('opps ids ' + oSet);
         for(Account a: accs) {
             system.debug('Checking ' + a.Id);
             if(oSet.contains(a.Id)) {
                 a.addError('This Account has Open Oportunities');
             }
         }
-        
+      
     }
 }
