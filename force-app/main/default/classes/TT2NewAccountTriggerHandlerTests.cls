@@ -39,7 +39,7 @@ public with sharing class TT2NewAccountTriggerHandlerTests {
 
     @isTest
     public static void TestBatchInsert() {
-        Integer count = 300;
+        Integer count = 500;
         List<Account> a = new List<Account>();
         for (Integer x = 0; x < count; x++) {
             String name = 'Rich Company_' + x;
